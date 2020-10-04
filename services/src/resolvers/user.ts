@@ -77,7 +77,22 @@ export class UserResolver {
       password: hashedPassword,
       email: options.email,
     });
-    await em.persistAndFlush(user);
+    try {
+      await em.persistAndFlush(user);
+    } catch (error) {
+      // username is not unique
+      if (error.code === "23505") {
+        return {
+          errors: [
+            {
+              field: "username",
+              message: "username is already taken",
+            },
+          ],
+        };
+      }
+      console.log(error);
+    }
     return { user };
   }
 
